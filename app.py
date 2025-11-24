@@ -1,0 +1,206 @@
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy.orm import Session
+import os
+import shutil
+from typing import List, Optional
+
+from config import settings
+from database.models import Base, engine, Candidate, Skill, Education, Experience, SessionLocal
+from services.file_processor import FileProcessor
+from services.llm_parser import LLMResumeParser
+from services.search_engine import SearchEngine
+from utils.helpers import get_db
+
+# Create tables if they don't exist
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="AI Resume Screening", debug=settings.DEBUG)
+
+# Mount static files and templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+# Ensure upload directory exists
+os.makedirs("uploads", exist_ok=True)
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/api/upload-resume")
+async def upload_resume(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """SUBMIT resume file"""
+    try:
+        # Validate file
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        if file_extension not in settings.ALLOWED_EXTENSIONS:
+            raise HTTPException(status_code=400, detail="File type not supported")
+        
+        # Save file
+        file_path = f"uploads/{file.filename}"
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Extract text
+        file_processor = FileProcessor()
+        raw_text = file_processor.extract_text_from_file(file_path, file_extension)
+        cleaned_text = file_processor.clean_extracted_text(raw_text)
+        
+        if not cleaned_text.strip():
+            raise HTTPException(status_code=400, detail="No text could be extracted from the file")
+        
+        # Parse with LLM
+        llm_parser = LLMResumeParser()
+        parsed_data = llm_parser.parse_resume(cleaned_text)
+        
+        # Save to database
+        candidate = save_candidate_data(db, parsed_data, file_path, cleaned_text)
+        
+        return {
+            "success": True,
+            "candidate_id": candidate.id,
+            "name": candidate.name,
+            "message": "Resume parsed successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/search")
+async def search_candidates(
+    q: str,
+    min_experience: Optional[int] = None,
+    education: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Search candidates by skills and filters"""
+    try:
+        search_engine = SearchEngine(db)
+        filters = {}
+        
+        if min_experience:
+            filters['min_experience'] = min_experience
+        if education:
+            filters['education'] = education
+            
+        results = search_engine.search_candidates(q, filters)
+        
+        return {
+            "success": True,
+            "query": q,
+            "results": results,
+            "count": len(results)
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/candidates")
+async def get_all_candidates(db: Session = Depends(get_db)):
+    """Get all parsed candidates"""
+    try:
+        candidates = db.query(Candidate).all()
+        return {
+            "success": True,
+            "candidates": [
+                {
+                    "id": c.id,
+                    "name": c.name,
+                    "email": c.email,
+                    "skills": [s.name for s in c.skills],
+                    "experience_summary": c.experience_summary
+                } for c in candidates
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def save_candidate_data(db: Session, parsed_data: dict, file_path: str, raw_text: str) -> Candidate:
+    """Save parsed candidate data to database"""
+    
+    # Create or update candidate
+    candidate = db.query(Candidate).filter(Candidate.email == parsed_data['email']).first()
+    if not candidate:
+        candidate = Candidate(
+            name=parsed_data.get('name', ''),
+            email=parsed_data.get('email', ''),
+            phone=parsed_data.get('phone', ''),
+            location=parsed_data.get('location', ''),
+            raw_text=raw_text,
+            resume_file_path=file_path,
+            experience_summary=parsed_data.get('experience_summary', '')
+        )
+        db.add(candidate)
+        db.flush()
+    
+    # Process skills
+    for skill_name in parsed_data.get('skills', []):
+        if skill_name:
+            skill = db.query(Skill).filter(Skill.normalized_name == skill_name.lower()).first()
+            if not skill:
+                skill = Skill(
+                    name=skill_name,
+                    normalized_name=skill_name.lower(),
+                    category=categorize_skill(skill_name)
+                )
+                db.add(skill)
+                db.flush()
+            
+            if skill not in candidate.skills:
+                candidate.skills.append(skill)
+    
+    # Process education
+    for edu_data in parsed_data.get('education', []):
+        education = Education(
+            candidate_id=candidate.id,
+            degree=edu_data.get('degree', ''),
+            institution=edu_data.get('institution', ''),
+            year=edu_data.get('year', ''),
+            field_of_study=edu_data.get('field_of_study', '')
+        )
+        db.add(education)
+    
+    # Process experience
+    for exp_data in parsed_data.get('experience', []):
+        experience = Experience(
+            candidate_id=candidate.id,
+            job_title=exp_data.get('job_title', ''),
+            company=exp_data.get('company', ''),
+            duration=exp_data.get('duration', ''),
+            description=exp_data.get('description', ''),
+            start_date=exp_data.get('start_date', ''),
+            end_date=exp_data.get('end_date', '')
+        )
+        db.add(experience)
+    
+    db.commit()
+    db.refresh(candidate)
+    return candidate
+
+def categorize_skill(skill_name: str) -> str:
+    """Categorize skills into programming, tool, framework, or soft_skill"""
+    skill_lower = skill_name.lower()
+    
+    programming_keywords = ['python', 'java', 'javascript', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin']
+    framework_keywords = ['react', 'angular', 'vue', 'django', 'flask', 'spring', 'express']
+    tool_keywords = ['docker', 'kubernetes', 'aws', 'azure', 'git', 'jenkins']
+    
+    if any(keyword in skill_lower for keyword in programming_keywords):
+        return 'programming'
+    elif any(keyword in skill_lower for keyword in framework_keywords):
+        return 'framework'
+    elif any(keyword in skill_lower for keyword in tool_keywords):
+        return 'tool'
+    else:
+        return 'soft_skill'
+
+if __name__ == "__main__":
+    import uvicorn
+    print(" Starting Resume Parser Server...")
+    print(" Database URL:", settings.DATABASE_URL)
+    print(" Groq Model:", settings.GROQ_MODEL)
+    print(" Server will be available at: http://localhost:8000")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

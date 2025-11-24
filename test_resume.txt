@@ -1,0 +1,18 @@
+John Developer
+john.developer@email.com | (555) 123-4567 | San Francisco, CA
+
+SKILLS:
+Python, JavaScript, React, Node.js, AWS, Docker, PostgreSQL, FastAPI
+
+EXPERIENCE:
+Senior Developer - Tech Company (2021-Present)
+- Built web applications with React and Python
+- Deployed applications on AWS using Docker
+- Managed PostgreSQL databases
+
+Junior Developer - Startup Inc (2019-2021)
+- Developed REST APIs with FastAPI
+- Worked with React frontend
+
+EDUCATION:
+BS Computer Science - University of Tech (2015-2019)

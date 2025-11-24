@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Screening</title>
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Resume Screening</h1>
+        <p class="subtitle">Automated Resume Screening for HR Teams</p>
+        
+        <div class="upload-section">
+            <h2>📄 Upload Resume</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="file-input-wrapper">
+                    <input type="file" id="resumeFile" name="file" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+                    <label for="resumeFile" class="file-label">Choose file (pdf,docs)</label>
+                </div>
+                <button type="submit" class="upload-btn">SUBMIT</button>
+            </form>
+            <div id="uploadStatus"></div>
+        </div>
+        
+        <div class="search-section">
+            <h2>🔍 Search Candidates</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Enter skills (e.g., Python, React, AWS, Docker)">
+                <button onclick="searchCandidates()" class="search-btn">Search</button>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+
+        <div class="candidates-section">
+            <h2>👥 All Candidates</h2>
+            <button onclick="loadAllCandidates()" class="load-btn">Load All Candidates</button>
+            <div id="allCandidates"></div>
+        </div>
+    </div>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>

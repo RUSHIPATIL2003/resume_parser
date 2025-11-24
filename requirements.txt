@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+python-multipart
+sqlalchemy
+alembic
+psycopg2-binary
+python-docx
+pdfplumber
+pytesseract
+pillow
+groq
+jinja2
+aiofiles
+python-dotenv
