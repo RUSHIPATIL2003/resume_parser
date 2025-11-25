@@ -286,16 +286,21 @@ async function selectCandidate(candidateId) {
 
 function displayResumeDocument(candidateId) {
     const documentViewer = document.getElementById('documentViewer');
-    const pdfUrl = `/api/resume/file/${candidateId}`;
+    const fileUrl = `/api/resume/file/${candidateId}`;
     
     documentViewer.innerHTML = `
-        <div style="width: 100%; height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="width: 100%; height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f5f5f5;">
             <iframe 
                 id="pdfFrame" 
-                src="${pdfUrl}" 
-                type="application/pdf"
-                style="width: 100%; height: 100%; border: none; border-radius: 12px;">
+                src="${fileUrl}#toolbar=1&navpanes=0&scrollbar=1"
+                frameborder="0"
+                style="width: 100%; height: 100%; border: none; border-radius: 8px;">
             </iframe>
+            <div style="margin-top: 10px; text-align: center; width: 100%;">
+                <a href="${fileUrl}" target="_blank" style="color: #6366f1; text-decoration: none; font-size: 12px;">
+                    <i class="fas fa-download"></i> Download Resume
+                </a>
+            </div>
         </div>
     `;
 }
