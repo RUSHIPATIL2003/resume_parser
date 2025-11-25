@@ -464,13 +464,6 @@ Get your API key: https://console.groq.com/
 
 ## 🚀 Deployment
 
-### Deploy to Replit
-
-1. Push code to Replit
-2. Configure environment variables in Secrets tab
-3. Click "Deploy" button
-4. Choose "Autoscale" for automatic scaling
-
 ### Deploy Locally with Gunicorn
 
 ```bash
