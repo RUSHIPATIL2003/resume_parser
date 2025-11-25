@@ -1,12 +1,26 @@
 let selectedFile = null;
 let currentCandidateId = null;
+let jobRoles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     setupFileUpload();
     loadResumeList();
+    loadJobRoles();
     setupSearchButton();
     setupDisplayResumeButton();
 });
+
+async function loadJobRoles() {
+    try {
+        const response = await fetch('/api/job-roles');
+        const result = await response.json();
+        if (result.success) {
+            jobRoles = result.job_roles;
+        }
+    } catch (error) {
+        console.error('Failed to load job roles:', error);
+    }
+}
 
 function setupFileUpload() {
     const dropzone = document.getElementById('dropzone');
@@ -120,24 +134,74 @@ async function searchBySkills() {
     const query = skillSearch.value.trim();
 
     if (!query) {
-        searchResults.innerHTML = '<div class="status-error status-message">Please enter search skills</div>';
+        searchResults.innerHTML = '<div class="status-error status-message">Please enter search skills or job role</div>';
         return;
     }
 
     searchResults.innerHTML = '<div class="loading">Searching candidates...</div>';
 
     try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-        const result = await response.json();
+        const normalizedQuery = query.toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_');
+        
+        const matchingRole = jobRoles.find(role => 
+            role.key === normalizedQuery || 
+            role.title.toLowerCase() === query.toLowerCase()
+        );
+        
+        if (matchingRole) {
+            const response = await fetch(`/api/search-by-role?role=${matchingRole.key}`);
+            const result = await response.json();
 
-        if (result.success && result.results.length > 0) {
-            displaySearchResults(result.results);
+            if (result.success && result.candidates && result.candidates.length > 0) {
+                displayJobRoleResults(result);
+            } else {
+                searchResults.innerHTML = '<div class="no-info"><p>No candidates found for this job role</p></div>';
+            }
         } else {
-            searchResults.innerHTML = '<div class="no-info"><p>No candidates found matching those skills</p></div>';
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            const result = await response.json();
+
+            if (result.success && result.results && result.results.length > 0) {
+                displaySearchResults(result.results);
+            } else {
+                searchResults.innerHTML = '<div class="no-info"><p>No candidates found matching those skills</p></div>';
+            }
         }
     } catch (error) {
         searchResults.innerHTML = `<div class="status-error status-message">Search error: ${error.message}</div>`;
     }
+}
+
+function displayJobRoleResults(result) {
+    const searchResults = document.getElementById('searchResults');
+    let html = `<div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0;">
+                    <strong>Role:</strong> ${result.job_role}<br>
+                    <strong>Required Skills:</strong> ${result.required_skills.length}
+                </div>`;
+
+    result.candidates.forEach(candidate => {
+        const matchPercentage = candidate.match_percentage || 0;
+        const matchedSkills = candidate.matched_skills || [];
+        const missingSkills = candidate.missing_skills || [];
+        
+        let matchColor = '#ef4444';
+        if (matchPercentage >= 70) matchColor = '#22c55e';
+        else if (matchPercentage >= 40) matchColor = '#f59e0b';
+        
+        html += `
+            <div class="candidate-item" onclick="selectCandidate(${candidate.id})" style="border-left: 4px solid ${matchColor};">
+                <div class="candidate-name">${candidate.name}</div>
+                <div class="candidate-email">${candidate.email}</div>
+                <div style="color: ${matchColor}; font-weight: 600; margin: 8px 0; font-size: 16px;">Match: ${matchPercentage}%</div>
+                <div style="margin: 8px 0; font-size: 12px;">
+                    <div style="color: #22c55e; margin-bottom: 4px;">✓ Matched (${candidate.matched_count}/${candidate.total_required}): ${matchedSkills.slice(0, 3).join(', ')}${matchedSkills.length > 3 ? '...' : ''}</div>
+                    <div style="color: #ef4444;">✗ Missing (${missingSkills.length}): ${missingSkills.slice(0, 3).join(', ')}${missingSkills.length > 3 ? '...' : ''}</div>
+                </div>
+            </div>
+        `;
+    });
+
+    searchResults.innerHTML = html;
 }
 
 function displaySearchResults(results) {
