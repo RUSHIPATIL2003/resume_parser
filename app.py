@@ -220,6 +220,35 @@ async def get_all_candidates(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/job-roles")
+async def get_job_roles(db: Session = Depends(get_db)):
+    """Get list of all available job roles"""
+    try:
+        search_engine = SearchEngine(db)
+        roles = search_engine.get_available_job_roles()
+        return {
+            "success": True,
+            "job_roles": roles
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/search-by-role")
+async def search_by_job_role(role: str, db: Session = Depends(get_db)):
+    """Search candidates by job role and rank by skill match percentage"""
+    try:
+        search_engine = SearchEngine(db)
+        result = search_engine.search_by_job_role(role)
+        
+        if not result.get("success", True):
+            raise HTTPException(status_code=404, detail=result.get("message", "Job role not found"))
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 def save_candidate_data(db: Session, parsed_data: dict, file_path: str, raw_text: str) -> Candidate:
     """Save parsed candidate data to database"""
     

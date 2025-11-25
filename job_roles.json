@@ -1,0 +1,197 @@
+{
+  "mern_stack": {
+    "title": "MERN Stack Developer",
+    "skills": [
+      "JavaScript",
+      "TypeScript",
+      "MongoDB",
+      "Express.js",
+      "React.js",
+      "Node.js",
+      "Next.js",
+      "React Native",
+      "GraphQL",
+      "WebSockets",
+      "AWS",
+      "Azure",
+      "GCP",
+      "DevOps",
+      "Redux",
+      "Zustand",
+      "Context API",
+      "GitHub"
+    ]
+  },
+  "full_stack_developer": {
+    "title": "Full Stack Developer",
+    "skills": [
+      "JavaScript",
+      "Python",
+      "React.js",
+      "Node.js",
+      "Django",
+      "Flask",
+      "PostgreSQL",
+      "MySQL",
+      "MongoDB",
+      "REST API",
+      "Docker",
+      "Git",
+      "AWS",
+      "HTML",
+      "CSS"
+    ]
+  },
+  "frontend_developer": {
+    "title": "Frontend Developer",
+    "skills": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "TypeScript",
+      "React.js",
+      "Vue.js",
+      "Angular",
+      "Redux",
+      "Webpack",
+      "Sass",
+      "Tailwind CSS",
+      "Bootstrap",
+      "Responsive Design",
+      "Git"
+    ]
+  },
+  "backend_developer": {
+    "title": "Backend Developer",
+    "skills": [
+      "Python",
+      "Java",
+      "Node.js",
+      "Express.js",
+      "Django",
+      "Flask",
+      "Spring Boot",
+      "PostgreSQL",
+      "MySQL",
+      "MongoDB",
+      "REST API",
+      "GraphQL",
+      "Docker",
+      "Kubernetes",
+      "Microservices"
+    ]
+  },
+  "data_scientist": {
+    "title": "Data Scientist",
+    "skills": [
+      "Python",
+      "R",
+      "Machine Learning",
+      "Deep Learning",
+      "TensorFlow",
+      "PyTorch",
+      "Scikit-learn",
+      "Pandas",
+      "NumPy",
+      "SQL",
+      "Data Visualization",
+      "Statistics",
+      "Jupyter",
+      "AWS",
+      "Big Data"
+    ]
+  },
+  "devops_engineer": {
+    "title": "DevOps Engineer",
+    "skills": [
+      "Docker",
+      "Kubernetes",
+      "AWS",
+      "Azure",
+      "GCP",
+      "Jenkins",
+      "CI/CD",
+      "Terraform",
+      "Ansible",
+      "Linux",
+      "Bash",
+      "Python",
+      "Git",
+      "GitHub Actions",
+      "Monitoring"
+    ]
+  },
+  "mobile_developer": {
+    "title": "Mobile Developer",
+    "skills": [
+      "React Native",
+      "Flutter",
+      "Swift",
+      "Kotlin",
+      "iOS",
+      "Android",
+      "JavaScript",
+      "TypeScript",
+      "Firebase",
+      "REST API",
+      "Git",
+      "Xcode",
+      "Android Studio"
+    ]
+  },
+  "ui_ux_designer": {
+    "title": "UI/UX Designer",
+    "skills": [
+      "Figma",
+      "Adobe XD",
+      "Sketch",
+      "Photoshop",
+      "Illustrator",
+      "User Research",
+      "Wireframing",
+      "Prototyping",
+      "Design Systems",
+      "HTML",
+      "CSS",
+      "Responsive Design"
+    ]
+  },
+  "cloud_architect": {
+    "title": "Cloud Architect",
+    "skills": [
+      "AWS",
+      "Azure",
+      "GCP",
+      "Cloud Architecture",
+      "Microservices",
+      "Docker",
+      "Kubernetes",
+      "Serverless",
+      "Lambda",
+      "CloudFormation",
+      "Terraform",
+      "Networking",
+      "Security",
+      "Cost Optimization"
+    ]
+  },
+  "qa_engineer": {
+    "title": "QA Engineer",
+    "skills": [
+      "Test Automation",
+      "Selenium",
+      "Cypress",
+      "Jest",
+      "JUnit",
+      "Python",
+      "JavaScript",
+      "API Testing",
+      "Postman",
+      "Performance Testing",
+      "CI/CD",
+      "Git",
+      "Agile",
+      "Test Planning"
+    ]
+  }
+}
