@@ -278,6 +278,37 @@ async def clear_shortlisted_candidates():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/reset-search-status")
+async def reset_search_status(db: Session = Depends(get_db)):
+    """Reset search status for all candidates - allows re-searching all resumes from scratch"""
+    try:
+        search_engine = SearchEngine(db)
+        success = search_engine.reset_all_search_status()
+        if success:
+            return {
+                "success": True,
+                "message": "All candidates have been reset. You can now search through all resumes again."
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to reset search status")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/search-stats")
+async def get_search_stats(db: Session = Depends(get_db)):
+    """Get statistics about searched vs unsearched candidates"""
+    try:
+        search_engine = SearchEngine(db)
+        stats = search_engine.get_search_stats()
+        return {
+            "success": True,
+            **stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 def save_candidate_data(db: Session, parsed_data: dict, file_path: str, raw_text: str) -> Candidate:
     """Save parsed candidate data to database"""
     

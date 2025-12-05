@@ -60,7 +60,7 @@ class FileProcessor:
     @staticmethod
     def clean_extracted_text(text: str) -> str:
         """Clean and preprocess extracted text"""
-        # Remove extra whitespace 
+        # Remove extra whitespace
         text = re.sub(r'\s+', ' ', text)
         # Remove special characters but keep basic punctuation
         text = re.sub(r'[^\w\s.,!?;:()\-]', '', text)
