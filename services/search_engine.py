@@ -187,6 +187,9 @@ class SearchEngine:
             'r': ['r', 'rprogramming', 'rlanguage'],
             'go': ['go', 'golang'],
             'golang': ['go', 'golang'],
+            'Machine Learning': ['machine learning', 'ml'],
+            'SQL': ['SQL', 'Postgressql', 'MySQL', 'MariaDB', 'SQLite', 'MSSQL', 'OracleDB', 'Postgres', 'Mysql', 'PL/SQL'],
+            
         }
         
         for skill_key, synonyms in skill_synonyms.items():

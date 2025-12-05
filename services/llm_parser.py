@@ -35,7 +35,7 @@ class LLMResumeParser:
             import json
             skills = json.loads(result_text)
             return skills if isinstance(skills, list) else []
-            
+            # 
         except Exception as e:
             print(f"Skill extraction failed: {e}")
             return self.parser._get_common_skills()

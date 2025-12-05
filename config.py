@@ -8,7 +8,7 @@ class Settings:
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./resume_parser.db")
     
     # Groq API Configuration
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "") # make sure to set this in your .env file
     GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")  # Updated to working model
     
     # File Upload
@@ -18,3 +18,4 @@ class Settings:
     DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 settings = Settings()
+
