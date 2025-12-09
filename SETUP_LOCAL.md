@@ -38,8 +38,8 @@ sudo apt-get install tesseract-ocr
 ## Step 3: Clone or Download the Project
 
 ```bash
-# Option 1: Clone from Replit (if available)
-git clone <your-replit-url>
+# Option 1: Clone from   (if available)
+git clone <your- -url>
 cd resume-parser
 
 # Option 2: Download as ZIP and extract
@@ -239,6 +239,6 @@ Press `Ctrl+C` in your terminal to stop the server.
 For issues with:
 - **Groq API**: Visit https://console.groq.com/docs
 - **FastAPI**: Visit https://fastapi.tiangolo.com/
-- **This Project**: Check the replit.md file for more information
+- **This Project**: Check the  .md file for more information
 
 Enjoy using the AI Resume Screening System! 🚀
