@@ -25,12 +25,15 @@ class SearchEngine:
             return {}
     
     def search_candidates(self, query: str, filters: Dict[str, Any] = None) -> List[Dict]:
-        """Search candidates based on skills and other criteria"""
+        """Search candidates based on skills and other criteria - ONLY processes NEW (unsearched) candidates"""
         if filters is None:
             filters = {}
         
-        # Base query
-        base_query = self.db.query(Candidate)
+        # Clear shortlisted candidates before each new search
+        self.shortlisted_db.clear_all()
+        
+        # Base query - ONLY get candidates that have NOT been searched before
+        base_query = self.db.query(Candidate).filter(Candidate.is_searched == False)
         
         # Skill-based search
         if query:
@@ -46,9 +49,13 @@ class SearchEngine:
         # Calculate match percentages
         results = []
         shortlisted_for_storage = []
+        processed_candidate_ids = []
         
         for candidate in candidates:
             match_percentage = self._calculate_match_percentage(candidate, skill_terms if query else [])
+            
+            # Mark this candidate as searched (processed)
+            processed_candidate_ids.append(candidate.id)
             
             # Filter: Only include candidates with at least 70% match
             if match_percentage >= 70:
@@ -79,6 +86,10 @@ class SearchEngine:
                     "experiences": experiences,
                     "skills": candidate_skills
                 })
+        
+        # Mark all processed candidates as searched in the database
+        if processed_candidate_ids:
+            self._mark_candidates_as_searched(processed_candidate_ids)
         
         # Sort by match percentage
         results.sort(key=lambda x: x["match_percentage"], reverse=True)
@@ -213,8 +224,47 @@ class SearchEngine:
         
         return False
     
+    def _mark_candidates_as_searched(self, candidate_ids: List[int]):
+        """Mark candidates as searched in the database"""
+        try:
+            self.db.query(Candidate).filter(Candidate.id.in_(candidate_ids)).update(
+                {Candidate.is_searched: True},
+                synchronize_session=False
+            )
+            self.db.commit()
+        except Exception as e:
+            print(f"Error marking candidates as searched: {e}")
+            self.db.rollback()
+    
+    def reset_all_search_status(self):
+        """Reset is_searched status for all candidates - allows re-searching all resumes"""
+        try:
+            self.db.query(Candidate).update(
+                {Candidate.is_searched: False},
+                synchronize_session=False
+            )
+            self.db.commit()
+            # Also clear shortlisted candidates
+            self.shortlisted_db.clear_all()
+            return True
+        except Exception as e:
+            print(f"Error resetting search status: {e}")
+            self.db.rollback()
+            return False
+    
+    def get_search_stats(self) -> Dict[str, int]:
+        """Get statistics about searched vs unsearched candidates"""
+        total = self.db.query(Candidate).count()
+        searched = self.db.query(Candidate).filter(Candidate.is_searched == True).count()
+        unsearched = self.db.query(Candidate).filter(Candidate.is_searched == False).count()
+        return {
+            "total_candidates": total,
+            "already_searched": searched,
+            "new_unsearched": unsearched
+        }
+    
     def search_by_job_role(self, job_role_key: str) -> Dict[str, Any]:
-        """Search candidates by job role and rank by skill match percentage"""
+        """Search candidates by job role and rank by skill match percentage - ONLY processes NEW (unsearched) candidates"""
         job_role_key = job_role_key.lower().replace(' ', '_').replace('-', '_')
         
         if job_role_key not in self.job_roles:
@@ -227,13 +277,21 @@ class SearchEngine:
         job_role = self.job_roles[job_role_key]
         required_skills = job_role['skills']
         
-        all_candidates = self.db.query(Candidate).all()
+        # Clear shortlisted candidates before each new search
+        self.shortlisted_db.clear_all()
+        
+        # ONLY get candidates that have NOT been searched before
+        all_candidates = self.db.query(Candidate).filter(Candidate.is_searched == False).all()
         
         results = []
         shortlisted_for_storage = []
+        processed_candidate_ids = []
         
         for candidate in all_candidates:
             candidate_skills = [skill.name for skill in candidate.skills]
+            
+            # Mark this candidate as searched (processed)
+            processed_candidate_ids.append(candidate.id)
             
             matched_skills = []
             missing_skills = []
@@ -286,6 +344,10 @@ class SearchEngine:
                     "skills": candidate_skills
                 })
         
+        # Mark all processed candidates as searched in the database
+        if processed_candidate_ids:
+            self._mark_candidates_as_searched(processed_candidate_ids)
+        
         results.sort(key=lambda x: x["match_percentage"], reverse=True)
         
         # Store shortlisted candidates in separate database
@@ -297,6 +359,7 @@ class SearchEngine:
             "job_role": job_role['title'],
             "required_skills": job_role['skills'],
             "total_candidates": len(results),
+            "new_candidates_processed": len(processed_candidate_ids),
             "candidates": results
         }
     

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Table, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Table, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.sql import func
@@ -26,6 +26,7 @@ class Candidate(Base):
     resume_file_path = Column(String)
     experience_summary = Column(Text)
     match_percentage = Column(Integer, default=0)
+    is_searched = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
